@@ -7,19 +7,27 @@ const usePersistedState = (initialState, key, { get, set }) => {
   const globalState = useRef(null);
   const [state, setState] = useState(() => get(key, initialState));
 
-  // subscribe to `storage` change events
+  // Subscribe to `storage` change events
   useEventListener('storage', ({ key: k, newValue }) => {
     if (k === key) {
-      const newState = JSON.parse(newValue);
-      if (state !== newState) {
-        setState(newState);
+      try {
+        const newState = JSON.parse(newValue);
+        if (state !== newState) {
+          setState(newState);
+        }
+      } catch (error) {
+        console.error(`Error parsing JSON for key "${key}":`, error);
+        // If parsing fails, set state to the raw `newValue`
+        if (state !== newValue) {
+          setState(newValue);
+        }
       }
     }
   });
 
-  // only called on mount
+  // Only called on mount
   useEffect(() => {
-    // register a listener that calls `setState` when another instance emits
+    // Register a listener that calls `setState` when another instance emits
     globalState.current = createGlobalState(key, setState, initialState);
 
     return () => {
@@ -32,12 +40,12 @@ const usePersistedState = (initialState, key, { get, set }) => {
       const newStateValue =
         typeof newState === 'function' ? newState(state) : newState;
 
-      // persist to localStorage
+      // Persist to localStorage
       set(key, newStateValue);
 
       setState(newStateValue);
 
-      // inform all of the other instances in this tab
+      // Inform all of the other instances in this tab
       globalState.current.emit(newState);
     },
     [state, set, key]

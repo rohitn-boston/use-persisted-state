@@ -12,7 +12,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/donavon/use-persisted-state.git"
+    "url": "https://github.com/rohitn-boston/use-persisted-state.git"
   },
   "scripts": {
     "prepublishOnly": "npm run build",
